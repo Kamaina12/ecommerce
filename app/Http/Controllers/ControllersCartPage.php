@@ -4,20 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Http\Controllers\Partials\NavbarController;
-// C:\xampp\htdocs\bouchta-zamel\E-commerce-app\app\Http\Controllers\Partials
 use Livewire\Component;
 use Livewire\Attributes\Title;
 use Illuminate\Support\Facades\Cookie;
 
 #[Title('Product Page - Market-cart')]
-class ControllersCartPage extends Component
+class ControllersCartPage  extends Component
 {
     public $cart_items = [];
     public $grand_total;
 
     public function mount()
     {
-        $this->cart_items = $this->getcartItemsFromCookie();
+        $this->cart_items = $this->getCartItemsFromCookie();
         $this->grand_total = $this->calculateGrandTotal($this->cart_items);
     }
 
@@ -33,9 +32,26 @@ class ControllersCartPage extends Component
         $this->dispatch('update-cart-count', total_count: count($this->cart_items))->to(NavbarController::class);
     }
 
+    public function updateQuantity($product_id, $change)
+    {
+        $cart_items = $this->getCartItemsFromCookie();
+
+        foreach ($cart_items as &$item) {
+            if ($item['product_id'] == $product_id) {
+                $item['quantity'] += $change;
+                $item['quantity'] = max(1, $item['quantity']);
+                $item['total_amount'] = $item['quantity'] * $item['unit_amount'];
+            }
+        }
+
+        $this->addCartItemsToCookie($cart_items);
+        $this->cart_items = $cart_items;
+        $this->grand_total = $this->calculateGrandTotal($cart_items);
+    }
+
     private function addItemToCart($product_id)
     {
-        $cart_items = $this->getcartItemsFromCookie();
+        $cart_items = $this->getCartItemsFromCookie();
         $existing_item = null;
 
         foreach ($cart_items as $key => $item) {
@@ -54,7 +70,7 @@ class ControllersCartPage extends Component
                 $cart_items[] = [
                     'product_id' => $product_id,
                     'name' => $product->name,
-                    'image' => $product->images[0],
+                    'image' => $product->images[0] ?? 'default.png',
                     'quantity' => 1,
                     'unit_amount' => $product->price,
                     'total_amount' => $product->price,
@@ -62,11 +78,11 @@ class ControllersCartPage extends Component
             }
         }
 
-        $this->addcartItemsToCookie($cart_items);
+        $this->addCartItemsToCookie($cart_items);
         return count($cart_items);
     }
 
-    private function getcartItemsFromCookie()
+    private function getCartItemsFromCookie()
     {
         $cart_items = json_decode(Cookie::get('cart_items'), true);
         return $cart_items ?: [];
@@ -74,7 +90,7 @@ class ControllersCartPage extends Component
 
     private function removeItemFromCart($product_id)
     {
-        $cart_items = $this->getcartItemsFromCookie();
+        $cart_items = $this->getCartItemsFromCookie();
 
         foreach ($cart_items as $key => $item) {
             if ($item['product_id'] == $product_id) {
@@ -82,11 +98,12 @@ class ControllersCartPage extends Component
             }
         }
 
-        $this->addcartItemsToCookie($cart_items);
+        $cart_items = array_values($cart_items);
+        $this->addCartItemsToCookie($cart_items);
         return $cart_items;
     }
 
-    private function addcartItemsToCookie($cart_items)
+    private function addCartItemsToCookie($cart_items)
     {
         Cookie::queue('cart_items', json_encode($cart_items), 60 * 24 * 30);
     }

@@ -24,11 +24,11 @@ class ControllersProductPage extends Component
     #[Url] public $price_range = 300000;
     #[Url] public $sort = 'latest';
 
-    // Add to cart
+    // Add to cart function
     public function addToCart($productId)
     {
         $total_count = CartManagement::addItemToCart($productId);
-        $this->dispatch('update-cart-count', total_count: $total_count)->to(NavbarController::class);
+        $this->dispatch('update-cart-count', ['total_count' => $total_count])->to(NavbarController::class);
     }
 
     public function render()
@@ -55,19 +55,21 @@ class ControllersProductPage extends Component
             $productQuery->whereBetween('price', [0, $this->price_range]);
         }
 
-        if ($this->sort == 'latest') {
+        // Sorting logic
+        if ($this->sort === 'latest') {
             $productQuery->latest();
-        } elseif ($this->sort == 'price') {
+        } elseif ($this->sort === 'price') {
             $productQuery->orderBy('price');
         }
 
-        $category = Category::where('is_active', 1)->get();
-        $brand = Brand::where('is_active', 1)->get();
+        $categories = Category::where('is_active', 1)->get();
+        $brands = Brand::where('is_active', 1)->get();
 
         return view('Pages.product-page', [
             'products' => $productQuery->paginate(6),
-            'category' => $category,
-            'brand' => $brand,
+            'categories' => $categories,
+            'brands' => $brands,
+            'price_range' => $this->price_range, // Pass price_range to view
         ]);
     }
 }

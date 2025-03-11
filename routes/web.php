@@ -18,23 +18,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', ControllersHomePage::class);
 
- // Use array notation
+
+
+Route::get('/products', [ControllersProductPage::class, 'render'])->name('product.page');
+
 
 Route::get('/categories',ControllersCategoriesPage::class);
-Route::get('/products',ControllersProductPage::class);
-Route::get('/cart',ControllersCartPage::class);
+Route::get('/cart', [ControllersCartPage::class, 'render']);
 Route::get('/checkout',ControllersCheckoutPage::class);
 Route::get('/my-orders',ControllersMyOrdersPage::class);
 Route::get('/products/{slug}',ControllersProductDetailPage::class);
 Route::get('/my-orders/{order}',ControllersMyOrderDetailPage::class);
-Route::get('/theme1',[ControllersUserController::class,'theme']);
-// Route::get('/theme1',[UserController::class,'theme']);
 
 
-//login
-// Route::get('/login',ControllersLoginPage::class);
-// Route::get('/register',ControllersRegisterPage::class);
-// Route::get('/forgot',ControllersForgotPasswordPage::class);
-// Route::get('/reset',ControllersResetPasswordPage::class);
-// Route::get('/success',ControllersSuccessPage::class);
-// Route::get('/cancel',ControllersCancelPage::class);
+
+
